@@ -1,0 +1,42 @@
+Templates/Clientes/form.html
+
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 glass-container p-4">
+            <h2 style="color: var(--vino); font-family: 'Playfair Display', serif;" class="mb-4 text-center">
+                Registrar Nuevo Cliente
+            </h2>
+
+            <!-- ✅ endpoint correcto -->
+            <form action="{{ url_for('clientes.nuevo') }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nombre Completo</label>
+                    <input type="text" name="nombre" class="form-control" placeholder="Ej. Juan Pérez" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Teléfono</label>
+                    <input type="text" name="telefono" class="form-control" placeholder="Ej. 1234-5678">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Correo Electrónico</label>
+                    <input type="email" name="email" class="form-control" placeholder="juan@ejemplo.com">
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-vino">Guardar Cliente</button>
+
+                    <!-- ✅ endpoint correcto -->
+                    <a href="{{ url_for('clientes.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
