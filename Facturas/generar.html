@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="POST">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header text-white" style="background-color: #721c24;">
+                    <h5 class="mb-0 fw-bold">🧾 Facturar Reservación #{{ reserva.reservacion_id }}</h5>
+                </div>
+                <div class="card-body bg-light">
+                    <div class="mb-3">
+                        <label class="text-muted small">Cliente</label>
+                        <h5 class="fw-bold">{{ reserva.cliente.nombre }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small">Mesa</label>
+                        <p class="mb-0 fw-bold text-dark">
+                            {{ reserva.reservacion.nombre if reserva.mesa else 'Sin Mesa' }}
+                        </p>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-4">
+                        <label class="fw-bold mb-2">Tipo de Servicio</label>
+                        <div class="card p-2 border-0 shadow-sm">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="tipo_servicio" value="local" checked id="radioLocal">
+                                <label class="form-check-label" for="radioLocal">🍽️ Consumo Local (28%)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipo_servicio" value="llevar" id="radioLlevar">
+                                <label class="form-check-label" for="radioLlevar">🥡 Para Llevar (18%)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-vino w-100 py-3 fw-bold shadow-sm fs-5">
+                        ✅ FINALIZAR FACTURA
+                    </button>
+                    <a href="{{ url_for('reservaciones') }}" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 style="color: #721c24;">¿Qué consumieron?</h3>
+                <span class="badge bg-secondary">Marca los platos</span>
+            </div>
+
+            {% for cat in categorias %}
+                {% if cat.platos %}
+                <div class="card mb-3 border-0 shadow-sm">
+                    <div class="card-header text-white fw-bold" style="background-color: #721c24;">
+                        {{ cat.nombre }}
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for plato in cat.platos %}
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check p-2 rounded border bg-light d-flex align-items-center ps-4 hover-shadow">
+                                    <input class="form-check-input me-2" type="checkbox" name="platos" value="{{ plato.plato_id }}" id="p{{ plato.plato_id }}" style="transform: scale(1.2);">
+                                    <label class="form-check-label d-flex justify-content-between w-100" for="p{{ plato.plato_id }}" style="cursor: pointer;">
+                                        <span class="fw-bold text-dark">{{ plato.nombre }}</span>
+                                        <span class="badge bg-white text-dark border">${{ "%.0f"|format(plato.precio) }}</span>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</form>
+{% endblock %}

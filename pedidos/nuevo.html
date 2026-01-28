@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="text-vino fw-bold mb-0">
+                <i class="fa-solid fa-utensils me-2"></i> Mesa {{ mesa.nombre }}
+            </h2>
+            <p class="text-muted small mb-0">Tomando orden nueva</p>
+        </div>
+        <a href="{{ url_for('pedidos.index') }}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-xmark me-1"></i> Cancelar
+        </a>
+    </div>
+
+    <form method="POST" id="orderForm">
+        <div class="accordion shadow-sm" id="accordionMenu">
+            {% for categoria in categorias %}
+            <div class="accordion-item border-0 border-bottom">
+                <h2 class="accordion-header" id="heading{{ categoria.categoria_id }}">
+                    <button class="accordion-button collapsed fw-bold text-dark bg-light" type="button" 
+                            data-bs-toggle="collapse" data-bs-target="#collapse{{ categoria.categoria_id }}">
+                        {{ categoria.nombre }}
+                    </button>
+                </h2>
+                
+                <div id="collapse{{ categoria.categoria_id }}" class="accordion-collapse collapse" data-bs-parent="#accordionMenu">
+                    <div class="accordion-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for plato in categoria.platos %}
+                            <div class="list-group-item py-3">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6 mb-2 mb-md-0">
+                                        <div class="d-flex align-items-center">
+                                            <input type="checkbox" name="platos" value="{{ plato.plato_id }}" 
+                                                   id="check_{{ plato.plato_id }}" class="form-check-input me-3 d-none">
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ plato.nombre }}</h6>
+                                                <span class="text-success small fw-bold">RD$ {{ "{:,.2f}".format(plato.precio) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="d-flex gap-2 justify-content-end align-items-center">
+                                            <div class="flex-grow-1">
+                                                <input type="text" name="nota_{{ plato.plato_id }}" 
+                                                       id="nota_{{ plato.plato_id }}"
+                                                       class="form-control form-control-sm text-muted opacity-50 input-nota" 
+                                                       placeholder="Nota (ej. Sin sal)" disabled>
+                                            </div>
+
+                                            <div style="width: 80px;">
+                                                <input type="number" 
+                                                       name="cantidad_{{ plato.plato_id }}" 
+                                                       class="form-control text-center fw-bold border-secondary input-cantidad" 
+                                                       value="0" min="0" 
+                                                       data-plato-id="{{ plato.plato_id }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-grid gap-2 mt-4 pb-5">
+            <button type="submit" class="btn btn-vino btn-lg shadow py-3">
+                <i class="fa-solid fa-paper-plane me-2"></i> Enviar a Cocina
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    
+    document.querySelectorAll('.input-cantidad').forEach(input => {
+        input.addEventListener('input', function() {
+            const id = this.dataset.platoId;
+            const cantidad = parseInt(this.value);
+            
+            const checkbox = document.getElementById('check_' + id);
+            const notaInput = document.getElementById('nota_' + id);
+            const fila = this.closest('.list-group-item');
+
+            if (cantidad > 0) {
+                checkbox.checked = true;
+                notaInput.disabled = false;
+                notaInput.classList.remove('opacity-50');
+                fila.classList.add('bg-warning', 'bg-opacity-10');
+            } else {
+                checkbox.checked = false;
+                notaInput.disabled = true;
+                notaInput.value = '';
+                notaInput.classList.add('opacity-50');
+                fila.classList.remove('bg-warning', 'bg-opacity-10');
+            }
+        });
+    });
+</script>
+{% endblock %}

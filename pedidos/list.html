@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* VARIABLES DE MARCA L'IMPASTO */
+    :root {
+        --vino: #721c24;
+        --dorado: #c5a059;
+        --beige: #fdfaf5;
+        --blanco: #ffffff;
+    }
+
+    body { background-color: var(--beige); }
+
+    .text-vino { color: var(--vino) !important; }
+    .text-dorado { color: var(--dorado) !important; }
+    .bg-vino { background-color: var(--vino) !important; }
+    .bg-beige { background-color: var(--beige) !important; }
+    
+    /* BOTONES PERSONALIZADOS */
+    .btn-vino {
+        background-color: var(--vino);
+        color: var(--blanco);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-vino:hover {
+        background-color: #5a161d;
+        color: #f8f9fa;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-dorado {
+        color: var(--dorado);
+        border-color: var(--dorado);
+        background-color: transparent;
+    }
+    .btn-outline-dorado:hover {
+        background-color: var(--dorado);
+        color: white;
+    }
+
+    /* ESTILOS DE TABLA */
+    .card-gestion {
+        border-radius: 15px;
+        border: 1px solid rgba(197, 160, 89, 0.2);
+    }
+
+    .table-l-impasto thead {
+        background-color: #1a1d20 !important;
+        color: var(--blanco);
+        border-bottom: 3px solid var(--dorado);
+    }
+
+    /* BADGES DE ESTADO */
+    .badge-estado {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-vino mb-0">
+                <i class="fa-solid fa-clipboard-list me-2"></i>Gestión de Pedidos
+            </h2>
+            <small class="text-dorado fw-semibold text-uppercase">Panel Administrativo de Ventas</small>
+        </div>
+        
+        <button class="btn btn-vino btn-lg shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalMesas">
+            <i class="fa-solid fa-plus me-2"></i>Nueva Orden
+        </button>
+    </div>
+
+    <div class="mb-4">
+        <div class="btn-group shadow-sm bg-white rounded" role="group">
+            <button type="button" class="btn btn-dark active px-4">Todos</button>
+            <button type="button" class="btn btn-outline-secondary border-0">Abiertos</button>
+            <button type="button" class="btn btn-outline-secondary border-0">En Cocina</button>
+            <button type="button" class="btn btn-outline-secondary border-0">Servidos</button>
+            <button type="button" class="btn btn-outline-secondary border-0">Pagados</button>
+        </div>
+    </div>
+
+    <div class="card card-gestion shadow-lg border-0 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-l-impasto">
+                    <thead>
+                        <tr class="small text-uppercase">
+                            <th class="py-3 ps-4">ID</th>
+                            <th class="py-3">Mesa / Cliente</th>
+                            <th class="py-3">Fecha</th>
+                            <th class="py-3 text-center">Estado</th>
+                            <th class="py-3 text-end">Total</th>
+                            <th class="py-3 text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-secondary">#{{ pedido.pedido_id }}</td>
+                            
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-pill px-3 py-1 small me-2" style="background-color: var(--beige); color: var(--vino); border: 1px solid var(--dorado);">
+                                        Mesa {{ pedido.mesa.nombre }}
+                                    </div>
+                                    <span class="fw-semibold text-dark">
+                                        {{ pedido.cliente.nombre if pedido.cliente else 'Venta Rápida' }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td class="text-muted small">
+                                <i class="fa-regular fa-clock me-1 text-dorado"></i>
+                                {{ pedido.fecha_hora.strftime('%d/%m/%Y %I:%M %p') }}
+                            </td>
+
+                            <td class="text-center">
+                                {% if pedido.estatus == 'Pagado' %}
+                                    <span class="badge bg-success w-75 py-2 badge-estado">PAGADO</span>
+                                {% elif pedido.estatus == 'Abierto' %}
+                                    <span class="badge bg-primary w-75 py-2 badge-estado">ABIERTO</span>
+                                {% elif pedido.estatus == 'Cocina' %}
+                                    <span class="badge bg-warning text-dark w-75 py-2 badge-estado">EN COCINA</span>
+                                {% elif pedido.estatus == 'Servido' %}
+                                    <span class="badge bg-info w-75 py-2 badge-estado">SERVIDO</span>
+                                {% else %}
+                                    <span class="badge bg-secondary w-75 py-2 badge-estado">{{ pedido.estatus|upper }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end fw-bold text-vino fs-5">
+                                RD$ {{ "{:,.2f}".format(pedido.total_calculado | default(0)) }}
+                            </td>
+
+                            <td class="text-center pe-4">
+                                <div class="btn-group shadow-sm">
+                                    {% if pedido.estatus == 'Abierto' %}
+                                        <a href="{{ url_for('pedidos.cambiar_estatus', pedido_id=pedido.pedido_id, nuevo_estatus='Cocina') }}" 
+                                           class="btn btn-sm btn-outline-warning" title="Enviar a Cocina">
+                                            <i class="fa-solid fa-fire-burner"></i>
+                                        </a>
+                                    {% elif pedido.estatus == 'Cocina' %}
+                                        <a href="{{ url_for('pedidos.cambiar_estatus', pedido_id=pedido.pedido_id, nuevo_estatus='Servido') }}" 
+                                           class="btn btn-sm btn-outline-info" title="Marcar como Servido">
+                                            <i class="fa-solid fa-bell"></i>
+                                        </a>
+                                    {% elif pedido.estatus == 'Servido' %}
+                                        <a href="{{ url_for('pedidos.cambiar_estatus', pedido_id=pedido.pedido_id, nuevo_estatus='Pagado') }}" 
+                                           class="btn btn-sm btn-outline-success" title="Registrar Pago">
+                                            <i class="fa-solid fa-cash-register"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{{ url_for('pedidos.editar_pedido', pedido_id=pedido.pedido_id) }}" 
+                                       class="btn btn-sm btn-outline-dorado" title="Editar Pedido">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="confirmarEliminacion('{{ pedido.pedido_id }}')">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+
+                                <form id="form-delete-{{ pedido.pedido_id }}" 
+                                      action="{{ url_for('pedidos.eliminar_pedido', pedido_id=pedido.pedido_id) }}" 
+                                      method="POST" style="display: none;"></form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted bg-light">
+                                <i class="fa-solid fa-inbox fa-3x mb-3 opacity-25 text-vino"></i>
+                                <p>No hay pedidos registrados en el sistema.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalMesas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-vino text-white">
+                <h5 class="modal-title fw-bold text-uppercase small">Abrir Nueva Orden</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-beige p-4">
+                <div class="row g-2">
+                    {% for mesa in mesas %}
+                        <div class="col-6">
+                            <a href="{{ url_for('pedidos.nuevo_pedido', mesa_id=mesa.mesa_id) }}" 
+                               class="btn w-100 text-start py-3 shadow-sm mb-1 bg-white border-dorado-light d-flex justify-content-between align-items-center"
+                               style="border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 10px; transition: 0.3s;">
+                               <span class="text-vino fw-bold"><i class="fa-solid fa-chair me-2"></i> Mesa {{ mesa.nombre }}</span>
+                               <span class="badge {% if mesa.estatus == 'Disponible' %}bg-success{% else %}bg-danger{% endif %} small">
+                                   {{ mesa.estatus }}
+                               </span>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarEliminacion(id) {
+        if (confirm('¿Está seguro de anular el pedido #' + id + '? Esta acción es irreversible y liberará la mesa.')) {
+            document.getElementById('form-delete-' + id).submit();
+        }
+    }
+</script>
+{% endblock %}

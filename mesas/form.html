@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm border-0 mx-auto" style="max-width: 500px;">
+    <div class="card-header text-white" style="background-color: #721c24;">
+        <h4 class="mb-0">Registrar Mesa</h4>
+    </div>
+    
+    <div class="card-body" style="background-color: #fdfaf5;">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nombre / Ubicación</label>
+                <input type="text" name="nombre" class="form-control" placeholder="Ej: Terraza 4, VIP 1..." required>
+                <div class="form-text">Un nombre para identificarla fácilmente.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Capacidad (Personas)</label>
+                <input type="number" name="capacidad" class="form-control" placeholder="Ej: 4" required min="1">
+            </div>
+
+            <div class="text-end mt-4">
+                <a href="{{ url_for('mesas') }}" class="btn btn-outline-secondary me-2">Cancelar</a>
+                <button type="submit" class="btn btn-vino px-4">Guardar Mesa</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

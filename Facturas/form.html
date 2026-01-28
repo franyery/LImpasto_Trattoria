@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    :root {
+        --vino: #721c24;
+        --dorado: #c5a059;
+    }
+    .factura-card { border-top: 5px solid var(--vino); border-radius: 15px; }
+    .header-info { background-color: #fdfaf5; border-radius: 10px; padding: 15px; }
+    .table-menu thead { background-color: #343a40; color: white; }
+    .monto-grande { font-size: 1.5rem; font-weight: bold; color: var(--vino); }
+    .text-dorado { color: var(--dorado); font-weight: 600; }
+</style>
+
+<div class="container py-4">
+    <div class="card factura-card shadow-lg">
+        <div class="card-body">
+            <h2 class="text-center mb-4" style="color: var(--vino); font-family: 'Playfair Display', serif;">
+                <i class="fa-solid fa-file-invoice-dollar me-2"></i>Facturar Reservación #{{ reserva.reservacion_id }}
+            </h2>
+
+            <div class="header-info mb-4 shadow-sm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Cliente:</strong> {{ reserva.cliente.nombre }}</p>
+                        <p class="mb-0"><strong>Mesa:</strong> {{ reserva.mesa.nombre if reserva.mesa else 'Para Llevar' }}</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p class="mb-1"><strong>Fecha/Hora:</strong> {{ reserva.fecha }}</p>
+                        <p class="mb-0"><strong>Comensales:</strong> {{ reserva.personas }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <form action="{{ url_for('ventas.nueva_factura', res_id=reserva.reservacion_id) }}" method="POST">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle table-menu">
+                        <thead>
+                            <tr>
+                                <th>Plato / Producto</th>
+                                <th class="text-center">Precio Unit.</th>
+                                <th class="text-center" style="width: 150px;">Cantidad</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in menu %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold">{{ p.nombre }}</span><br>
+                                    <small class="text-muted">{{ p.categoria.nombre }}</small>
+                                </td>
+                                <td class="text-center">${{ "{:,.2f}".format(p.precio) }}</td>
+                                <td>
+                                    <input type="hidden" name="platos[]" value="{{ p.plato_id }}">
+                                    <input type="number" name="cantidades[]" 
+                                           class="form-control form-control-sm text-center input-cantidad" 
+                                           value="0" min="0" data-precio="{{ p.precio }}">
+                                </td>
+                                <td class="text-end fw-bold text-muted monto-linea">$0.00</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row justify-content-end mt-4">
+                    <div class="col-md-4">
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span id="resumen-subtotal">$0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>ITBIS (18%):</span>
+                                    <span id="resumen-itbis">$0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-dorado">Propina Legal (10%):</span>
+                                    <span id="resumen-propina" class="text-dorado">$0.00</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 mb-0">TOTAL:</span>
+                                    <span id="resumen-total" class="monto-grande">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-vino w-100 mt-3 py-2 shadow">
+                            <i class="fa-solid fa-cash-register me-2"></i>Procesar Pago y Liberar Mesa
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.input-cantidad').forEach(input => {
+        input.addEventListener('input', function() {
+            let subtotalGlobal = 0;
+            
+            document.querySelectorAll('.input-cantidad').forEach(i => {
+                const cant = parseInt(i.value) || 0;
+                const precio = parseFloat(i.dataset.precio);
+                const linea = cant * precio;
+                
+                i.closest('tr').querySelector('.monto-linea').textContent = `$${linea.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                subtotalGlobal += linea;
+            });
+
+            // Cálculos de Ley
+            const itbis = subtotalGlobal * 0.18;
+            const propina = subtotalGlobal * 0.10; 
+            const total = subtotalGlobal + itbis + propina;
+
+            document.getElementById('resumen-subtotal').textContent = `$${subtotalGlobal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('resumen-itbis').textContent = `$${itbis.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('resumen-propina').textContent = `$${propina.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('resumen-total').textContent = `$${total.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        });
+    });
+</script>
+{% endblock %}

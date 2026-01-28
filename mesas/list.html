@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .mesa-card { transition: all 0.3s ease; border-top: 5px solid transparent; }
+    .mesa-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; cursor: pointer; }
+    
+    /* Disponibilidad de mesas */
+    .mesa-disponible { border-color: #28a745; background-color: #f0fff4; }
+    .mesa-ocupada { border-color: #dc3545; background-color: #fff5f5; }
+    .mesa-reservada { border-color: #ffc107; background-color: #fffbf0; }
+
+    .mesa-icon { font-size: 2.5rem; opacity: 0.2; position: absolute; right: 15px; bottom: 15px; }
+    .capacidad-badge { position: absolute; top: 10px; right: 10px; font-size: 0.8rem; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 style="color: #721c24; font-family: 'Playfair Display', serif;">Gestión de Mesas</h2>
+        <p class="text-muted small mb-0">Control visual de tu salón en tiempo real</p>
+    </div>
+    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalNuevaMesa">
+        <i class="fas fa-plus me-2"></i>Nueva Mesa
+    </button>
+</div>
+
+<div class="row g-4">
+    {% for mesa in mesas %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm mesa-card 
+            {% if mesa.estatus == 'Disponible' %}mesa-disponible{% elif mesa.estatus == 'Ocupada' %}mesa-ocupada{% else %}mesa-reservada{% endif %}">
+            
+            <div class="card-body position-relative">
+                <span class="badge bg-dark rounded-pill capacidad-badge">
+                    <i class="fas fa-user-friends me-1"></i> {{ mesa.capacidad }} pers.
+                </span>
+
+                <h4 class="card-title fw-bold mb-1">{{ mesa.nombre }}</h4>
+                <p class="mb-3 badge {% if mesa.estatus == 'Disponible' %}bg-success{% elif mesa.estatus == 'Ocupada' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                    {{ mesa.estatus }}
+                </p>
+
+                <i class="fas fa-utensils mesa-icon"></i>
+
+                <div class="mt-4 d-grid gap-2">
+                    {% if mesa.estatus == 'Disponible' %}
+                        <a href="{{ url_for('reservacion.nueva_reservacion', mesa_id=mesa.mesa_id) }}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-calendar-check me-1"></i> Reservar
+                        </a>
+                    {% else %}
+                        <form action="{{ url_for('reservacion.liberar_mesa', id=mesa.mesa_id) }}" method="POST">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="fas fa-sign-out-alt me-1"></i> Liberar
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    <button class="btn btn-sm btn-link text-muted text-decoration-none" 
+                            data-bs-toggle="modal" data-bs-target="#modalEditar{{ mesa.mesa_id }}">
+                        <i class="fas fa-cog"></i> Editar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditar{{ mesa.mesa_id }}" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form action="{{ url_for('reservacion.editar_mesa', id=mesa.mesa_id) }}" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar {{ mesa.nombre }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Nombre</label>
+                            <input type="text" name="nombre" class="form-control" value="{{ mesa.nombre }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Capacidad</label>
+                            <input type="number" name="capacidad" class="form-control" value="{{ mesa.capacidad }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Estatus Manual</label>
+                            <select name="estatus" class="form-select">
+                                <option value="Disponible" {% if mesa.estatus == 'Disponible' %}selected{% endif %}>Disponible</option>
+                                <option value="Ocupada" {% if mesa.estatus == 'Ocupada' %}selected{% endif %}>Ocupada</option>
+                                <option value="Reservada" {% if mesa.estatus == 'Reservada' %}selected{% endif %}>Reservada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary w-100">Guardar Cambios</button>
+                    </div>
+                </form>
+                <form action="{{ url_for('reservacion.eliminar_mesa', id=mesa.mesa_id) }}" method="POST" class="p-3 pt-0">
+                    <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('¿Borrar mesa?')">Eliminar Mesa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="modalNuevaMesa" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('reservacion.mesas') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Nueva Mesa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nombre de la Mesa (ej: T-01)</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Capacidad de Personas</label>
+                        <input type="number" name="capacidad" class="form-control" value="4" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark">Guardar Mesa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-dorado pb-3">
+        <div>
+            <h2 class="text-vino fw-bold mb-0"><i class="fa-solid fa-pen-to-square me-2"></i>Editar Pedido #{{ pedido.pedido_id }}</h2>
+            <p class="text-muted small mb-0">Mesa: {{ mesa.nombre }} | Estado: {{ pedido.estatus }}</p>
+        </div>
+        <a href="{{ url_for('pedidos.index') }}" class="btn btn-outline-secondary">Volver</a>
+    </div>
+
+    <form method="POST">
+        <div class="accordion shadow-sm" id="menuEditar">
+            {% for categoria in categorias %}
+            <div class="accordion-item border-0 border-bottom">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-bold text-dark bg-beige" type="button" data-bs-toggle="collapse" data-bs-target="#cat{{ categoria.categoria_id }}">
+                        {{ categoria.nombre }}
+                    </button>
+                </h2>
+                <div id="cat{{ categoria.categoria_id }}" class="accordion-collapse collapse" data-bs-parent="#menuEditar">
+                    <div class="accordion-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for plato in categoria.platos %}
+                            {% set detalle = actuales.get(plato.plato_id) %}
+                            <div class="list-group-item py-3 {% if detalle %}bg-dorado-light{% endif %}">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <input type="checkbox" name="platos" value="{{ plato.plato_id }}" id="chk{{ plato.plato_id }}" class="d-none" {% if detalle %}checked{% endif %}>
+                                        <h6 class="mb-0 fw-bold">{{ plato.nombre }}</h6>
+                                        <small class="text-success">RD$ {{ "{:,.2f}".format(plato.precio) }}</small>
+                                    </div>
+                                    <div class="col-md-6 d-flex gap-2 justify-content-end">
+                                        <input type="text" name="nota_{{ plato.plato_id }}" class="form-control form-control-sm w-50" placeholder="Nota..." value="{{ detalle.nota if detalle else '' }}">
+                                        <input type="number" name="cantidad_{{ plato.plato_id }}" class="form-control text-center fw-bold w-25" value="{{ detalle.cantidad if detalle else 0 }}" min="0" onchange="marcar(this, '{{ plato.plato_id }}')">
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-vino btn-lg shadow"><i class="fa-solid fa-save me-2"></i>Actualizar Pedido</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function marcar(input, id) {
+    document.getElementById('chk' + id).checked = parseInt(input.value) > 0;
+}
+</script>
+
+<style>
+    .bg-beige { background-color: var(--beige) !important; }
+    .bg-dorado-light { background-color: rgba(197, 160, 89, 0.1); }
+    .border-dorado { border-color: var(--dorado) !important; }
+</style>
+{% endblock %}
