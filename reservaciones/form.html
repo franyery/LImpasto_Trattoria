@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <h2 style="color: var(--vino); font-family: 'Playfair Display', serif;" class="mb-4 text-center">Registrar Nueva Cita</h2>
+    
+    <form action="{{ url_for('reservacion.nueva_reservacion') }}" method="POST" class="p-4 border rounded bg-white shadow-sm">
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Fecha y Hora de la Reserva</label>
+            <input type="datetime-local" name="fecha" id="fecha_input" class="form-control" required>
+            <div class="form-text small">Seleccione la hora exacta de llegada.</div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold">Número de Personas</label>
+                <input type="number" name="personas" class="form-control" min="1" max="20" placeholder="Ej. 4" required>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Cliente</label>
+            <select name="cliente_id" class="form-select" required>
+                <option value="" disabled selected>Seleccione un cliente...</option>
+                {% for c in clientes %}
+                <option value="{{ c.cliente_id }}">{{ c.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">Mesa</label>
+            <select name="mesa_id" class="form-select" required>
+                <option value="" disabled selected>Seleccione la mesa...</option>
+                {% for m in mesas %}
+                <option value="{{ m.mesa_id }}" {% if mesa_id_previa|int == m.mesa_id %}selected{% endif %}>
+                    {{ m.nombre }} (Cap: {{ m.capacidad }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-vino">Confirmar Reserva</button>
+            <a href="{{ url_for('reservacion.reservaciones') }}" class="btn btn-light border">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Evita que seleccionen fechas pasadas
+    const now = new Date();
+    // Ajuste de zona horaria para el input
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('fecha_input').min = now.toISOString().slice(0,16);
+</script>
+
+{% endblock %}

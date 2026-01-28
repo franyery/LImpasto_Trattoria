@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .tabla-reservas thead { background-color: #721c24; color: #fff; }
+    .status-badge { font-size: 0.85rem; padding: 5px 12px; border-radius: 15px; }
+    .btn-facturar { background-color: #28a745; color: white; border: none; }
+    .btn-facturar:hover { background-color: #218838; color: white; }
+    .btn-group form { display: inline; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: #721c24; font-family: 'Playfair Display', serif;">Libro de Reservaciones</h2>
+    <a href="{{ url_for('reservacion.nueva_reservacion') }}" class="btn btn-vino shadow-sm">+ Nueva Reservación</a>
+</div>
+
+{% if reservaciones %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle tabla-reservas">
+        <thead>
+            <tr>
+                <th class="ps-4">ID</th>
+                <th>Fecha / Hora</th>
+                <th>Cliente</th>
+                <th>Pax</th>
+                <th>Mesa</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservaciones %}
+            <tr>
+                <td class="ps-4 text-muted">#{{ r.reservacion_id }}</td>
+                <td>
+                    <i class="far fa-calendar-alt me-2"></i>{{ r.fecha }}
+                </td>
+                <td class="fw-bold">{{ r.cliente.nombre if r.cliente else 'Sin cliente' }}</td>
+                <td>
+                    <span class="badge bg-light text-dark border">
+                        <i class="fas fa-users me-1"></i>{{ r.personas }}
+                    </span>
+                </td>
+                <td>
+                    {% if r.mesa %}
+                        {# CORRECCIÓN: Accedemos directamente a r.mesa #}
+                        {% if r.mesa.estatus == 'Ocupada' %}
+                            <span class="badge bg-danger">Mesa {{ r.mesa.nombre }} (Ocupada)</span>
+                        {% else %}
+                            <span class="badge bg-success">Mesa {{ r.mesa.nombre }} (Libre)</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-danger small italic">Sin Mesa</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <div class="btn-group shadow-sm">
+                        {# Sincronizado con el controlador de ventas #}
+                        <a href="{{ url_for('ventas.nueva_factura', res_id=r.reservacion_id) }}" 
+                           class="btn btn-sm btn-facturar" title="Generar Factura">
+                            💰 Facturar
+                        </a>
+                        
+                        <form action="{{ url_for('reservacion.eliminar_reserva', id=r.reservacion_id) }}" method="POST">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                    onclick="return confirm('¿Estás seguro de cancelar esta reserva? La mesa se liberará.');" 
+                                    title="Cancelar Reserva">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-light text-center border py-5">
+    <h4 class="text-muted">No hay reservaciones para mostrar</h4>
+    <p>Comienza registrando una nueva visita en el botón superior.</p>
+</div>
+{% endif %}
+{% endblock %}
