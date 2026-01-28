@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container d-flex justify-content-center">
+    <div class="card shadow-lg border-0" style="width: 500px;">
+        <div class="card-header text-center text-white" style="background-color: #721c24;">
+            <h4 class="mb-0">Trattoria L'Impasto</h4>
+            <small>Factura #{{ factura.factura_id }}</small>
+        </div>
+        <div class="card-body p-4" style="background-color: #fffbf2;">
+            
+            <div class="d-flex justify-content-between mb-3">
+                <span><strong>Cliente:</strong> {{ reserva.cliente.nombre }}</span>
+                <span>{{ factura.fecha_emision.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            <hr style="border-top: 2px dashed #d4af37;">
+            
+            <p class="mb-1 text-muted">Consumo:</p>
+            <p class="fw-bold">{{ factura.detalle }}</p>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-between">
+                <span>Subtotal:</span>
+                <span>${{ "%.2f"|format(factura.subtotal) }}</span>
+            </div>
+            
+            <div class="d-flex justify-content-between text-danger">
+                <span>
+                    {% if factura.tipo_servicio == 'local' %}
+                        Impuestos (28%):
+                    {% else %}
+                        ITBIS (18%):
+                    {% endif %}
+                </span>
+                <span>${{ "%.2f"|format(factura.monto_impuesto) }}</span>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-3 pt-2 border-top">
+                <h3>Total:</h3>
+                <h3 style="color: #721c24;">${{ "%.2f"|format(factura.total) }}</h3>
+            </div>
+
+        </div>
+        <div class="card-footer text-center bg-white">
+            <a href="{{ url_for('reservaciones') }}" class="btn btn-outline-dark btn-sm">Volver</a>
+            <button onclick="window.print()" class="btn btn-vino btn-sm">Imprimir</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
